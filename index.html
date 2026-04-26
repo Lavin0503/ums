@@ -1,1 +1,383 @@
-..
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMS - Untitled Maths System</title>
+    
+    <link rel="icon" type="image/png" href="Screenshot 2026-04-26 103644.png">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --tile-empty: #1e293b;
+            --tile-border: #334155;
+            --text: #f8fafc;
+            --key-bg: #334155;
+            --correct: #10b981;
+            --present: #f59e0b;
+            --absent: #475569;
+            --accent: #8b5cf6;
+        }
+
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --tile-empty: #ffffff;
+            --tile-border: #cbd5e1;
+            --text: #1e293b;
+            --key-bg: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--tile-border);
+        }
+
+        .ums-branding {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Logo styling beside the title */
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        h1 { 
+            font-size: 1.5rem; 
+            margin: 0; 
+            color: var(--accent); 
+            letter-spacing: 2px; 
+            font-weight: 900; 
+        }
+
+        #timer { font-family: monospace; font-weight: bold; color: var(--present); font-size: 1.1rem; visibility: hidden; }
+
+        .nav-btns { display: flex; gap: 5px; }
+        .nav-btns button {
+            background: none; border: 1px solid var(--tile-border);
+            color: var(--text); border-radius: 5px; cursor: pointer;
+            padding: 5px 10px; font-weight: bold; font-size: 0.9rem;
+        }
+
+        #game-board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; padding: 15px; }
+        .row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+
+        .tile {
+            width: 42px; height: 42px; border: 2px solid var(--tile-border);
+            border-radius: 4px; display: flex; justify-content: center;
+            align-items: center; font-size: 1.3rem; font-weight: bold;
+            background: var(--tile-empty); cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tile.active-input { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .tile.pop { transform: scale(1.1); }
+        
+        .tile[data-status="correct"] { background: var(--correct) !important; border-color: var(--correct) !important; color: white; }
+        .tile[data-status="present"] { background: var(--present) !important; border-color: var(--present) !important; color: white; }
+        .tile[data-status="absent"] { background: var(--absent) !important; border-color: var(--absent) !important; color: white; }
+
+        #keyboard { width: 100%; max-width: 500px; padding: 10px; margin-top: auto; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 6px; }
+        
+        .key {
+            background: var(--key-bg); color: var(--text); border: none;
+            border-radius: 5px; padding: 14px 0; flex: 1;
+            font-weight: bold; cursor: pointer; transition: 0.1s;
+        }
+
+        .key.pressed { transform: scale(0.85); background: var(--accent) !important; color: white; }
+        .key[data-status="correct"] { background: var(--correct); color: white; }
+        .key[data-status="present"] { background: var(--present); color: white; }
+        .key[data-status="absent"] { background: var(--absent); color: white; opacity: 0.4; }
+        .key.wide { flex: 2; background: #475569; color: white; }
+
+        #toast {
+            position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+            background: #ef4444; color: white; padding: 10px 20px;
+            border-radius: 5px; font-weight: bold; display: none; z-index: 3001;
+        }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .modal { background: var(--bg); padding: 25px; border-radius: 15px; max-width: 320px; border: 2px solid var(--accent); text-align: center; width: 100%; }
+        
+        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn-cancel { background: none; border: 1px solid #444; color: var(--text); padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        .praise-text { font-size: 2.2rem; font-weight: 900; color: var(--correct); text-transform: uppercase; }
+
+        footer { padding: 10px; font-size: 0.85rem; opacity: 0.7; width: 100%; text-align: center; }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <header>
+        <div class="ums-branding">
+            <img src="Screenshot 2026-04-26 103644.png" alt="Logo" class="header-logo">
+            <h1>UMS</h1>
+        </div>
+        <div id="timer">00:00</div>
+        <div class="nav-btns">
+            <button id="toggle-timer" onclick="toggleTimerOption()" title="Toggle Timer" style="opacity: 0.4;">⏱️</button>
+            <button onclick="toggleResetModal()" title="Reset Puzzle">🔄</button>
+            <button onclick="toggleRules()" title="Help">?</button>
+            <button onclick="toggleTheme()">🌓</button>
+        </div>
+    </header>
+
+    <div id="toast"></div>
+
+    <div id="rules-overlay" class="overlay">
+        <div class="modal">
+            <h2 style="margin-top: 0; color: var(--accent);">How to Play UMS</h2>
+            <div style="text-align: left; font-size: 0.9rem; line-height: 1.4; margin-bottom: 20px;">
+                <p>Guess the 8-character equation in 6 tries.</p>
+                <p>🟢 Green: Correct spot.<br>🟡 Yellow: Wrong spot.<br>⚪ Gray: Not in equation.</p>
+                <p><b>Controls:</b> Arrow keys to navigate boxes. Type or click to enter. "X" is multiply.</p>
+            </div>
+            <button class="btn-main" onclick="toggleRules()">START GAME</button>
+        </div>
+    </div>
+
+    <div id="reset-overlay" class="overlay" style="display: none;">
+        <div class="modal">
+            <h3 style="color: var(--accent); margin: 0;">New Puzzle?</h3>
+            <p style="font-size: 0.9rem; opacity: 0.8;">This will clear your progress and create a new equation.</p>
+            <button class="btn-main" onclick="confirmReset()">YES, RESET</button>
+            <button class="btn-cancel" onclick="toggleResetModal()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="results-overlay" class="overlay" style="display: none;">
+        <div class="modal">
+            <div id="praise" class="praise-text">GENIUS</div>
+            <div class="stat-box">
+                <p id="final-time-text">Time: 00:00</p>
+                <p id="percent-text" style="font-size: 0.9rem; margin-top: 10px; color: var(--accent); font-weight: bold;"></p>
+            </div>
+            <button class="btn-main" onclick="init()">NEW PUZZLE</button>
+        </div>
+    </div>
+
+    <div id="admin-overlay" class="overlay" style="display: none;">
+        <div class="modal">
+            <h3 style="color: var(--accent); margin: 0;">UMS Admin</h3>
+            <div id="admin-login">
+                <input type="password" id="admin-pass" style="width:90%; padding:10px; margin:10px 0; background:var(--tile-empty); border:1px solid var(--tile-border); color:white; border-radius:5px;" placeholder="Password">
+                <button class="btn-main" onclick="checkAdmin()">Unlock</button>
+            </div>
+            <div id="admin-controls" style="display: none;">
+                <p style="font-size: 0.8rem;">Target: <b id="show-ans" style="color: var(--correct);"></b></p>
+                <input type="text" id="manual-ans" style="width:90%; padding:10px; margin:10px 0; background:var(--tile-empty); border:1px solid var(--tile-border); color:white; border-radius:5px;" placeholder="Manual Set" maxlength="8">
+                <button class="btn-main" onclick="forceAnswer()">Apply</button>
+            </div>
+            <button class="btn-cancel" onclick="closeAdmin()">Close</button>
+        </div>
+    </div>
+
+    <div id="game-board"></div>
+
+    <div id="keyboard">
+        <div class="kb-row">
+            <button class="key" id="key-1" onclick="press('1')">1</button>
+            <button class="key" id="key-2" onclick="press('2')">2</button>
+            <button class="key" id="key-3" onclick="press('3')">3</button>
+            <button class="key" id="key-4" onclick="press('4')">4</button>
+            <button class="key" id="key-5" onclick="press('5')">5</button>
+            <button class="key" id="key-6" onclick="press('6')">6</button>
+            <button class="key" id="key-7" onclick="press('7')">7</button>
+            <button class="key" id="key-8" onclick="press('8')">8</button>
+            <button class="key" id="key-9" onclick="press('9')">9</button>
+            <button class="key" id="key-0" onclick="press('0')">0</button>
+        </div>
+        <div class="kb-row">
+            <button class="key" id="key-+" onclick="press('+')">+</button>
+            <button class="key" id="key--" onclick="press('-')">-</button>
+            <button class="key" id="key-*" onclick="press('*')">x</button>
+            <button class="key" id="key-/" onclick="press('/')">÷</button>
+            <button class="key" id="key-=" onclick="press('=')">=</button>
+        </div>
+        <div class="kb-row">
+            <button class="key wide" id="key-ENTER" onclick="press('ENTER')">ENTER</button>
+            <button class="key wide" id="key-BACK" onclick="press('BACK')">DEL</button>
+        </div>
+    </div>
+
+    <footer>
+        Made by <b id="secret-trigger" onclick="adminClick()" style="cursor:default">Lav1n</b> | <a href="https://youtube.com/@Lav1nRules" target="_blank" style="color:var(--accent); text-decoration:none;">YouTube</a>
+    </footer>
+
+    <script>
+        let target = "";
+        let currentRow = 0;
+        let selectedIndex = 0;
+        let guessArr = new Array(8).fill("");
+        let isAnimating = false;
+        let adminClicks = 0;
+        let startTime, timerInterval;
+        let timerEnabled = false;
+
+        const praises = ["INSANE", "GENIUS", "AMAZING", "SMART", "GOOD", "PHEW"];
+        const percentages = ["99.9%", "98.2%", "85.4%", "72.1%", "64.8%", "51.2%"];
+
+        function toggleTheme() { document.body.dataset.theme = document.body.dataset.theme === "dark" ? "light" : "dark"; }
+        function toggleRules() { const r = document.getElementById('rules-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
+        function toggleResetModal() { const r = document.getElementById('reset-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
+        function confirmReset() { toggleResetModal(); init(); showToast("Puzzle Reset!"); }
+
+        function adminClick() { if (++adminClicks >= 5) { document.getElementById('admin-overlay').style.display = 'flex'; adminClicks = 0; } }
+        function toggleTimerOption() {
+            timerEnabled = !timerEnabled;
+            document.getElementById('toggle-timer').style.opacity = timerEnabled ? "1" : "0.4";
+            document.getElementById('timer').style.visibility = timerEnabled ? "visible" : "hidden";
+        }
+        function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
+        function checkAdmin() { if (document.getElementById('admin-pass').value === "0503") { document.getElementById('admin-login').style.display = 'none'; document.getElementById('admin-controls').style.display = 'block'; document.getElementById('show-ans').innerText = target; } }
+        function forceAnswer() { const val = document.getElementById('manual-ans').value; if (val.length === 8) { target = val; showToast("Manual Override Set"); } }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
+
+        function generateEquation() {
+            const ops = ['+', '-', '*'];
+            while (true) {
+                let a = Math.floor(Math.random()*90)+10;
+                let b = Math.floor(Math.random()*9)+1;
+                let op = ops[Math.floor(Math.random()*3)];
+                try {
+                    let res = eval(`${a}${op}${b}`);
+                    let s = `${a}${op}${b}=${res}`;
+                    if (s.length === 8 && res >= 0 && Number.isInteger(res)) return s;
+                } catch(e) {}
+            }
+        }
+
+        function init() {
+            target = generateEquation();
+            currentRow = 0; selectedIndex = 0; guessArr = new Array(8).fill("");
+            isAnimating = false;
+            document.getElementById('results-overlay').style.display = 'none';
+            const board = document.getElementById('game-board'); 
+            board.innerHTML = '';
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('div'); row.className = 'row';
+                for (let j = 0; j < 8; j++) {
+                    const t = document.createElement('div'); t.className = 'tile';
+                    t.id = `r${i}t${j}`;
+                    t.onclick = () => { if(i === currentRow) select(j); };
+                    row.appendChild(t);
+                }
+                board.appendChild(row);
+            }
+            document.querySelectorAll('.key').forEach(k => k.removeAttribute('data-status'));
+            select(0);
+            startTime = Date.now();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').innerText = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        function select(t) {
+            if (isAnimating) return;
+            document.querySelectorAll('.tile').forEach(el => el.classList.remove('active-input'));
+            selectedIndex = Math.max(0, Math.min(7, t));
+            const tile = document.getElementById(`r${currentRow}t${selectedIndex}`);
+            if(tile) tile.classList.add('active-input');
+        }
+
+        function press(key) {
+            if (isAnimating) return;
+            const btn = document.getElementById(`key-${key}`);
+            if(btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 200); }
+            if (key === 'BACK') { guessArr[selectedIndex] = ""; update(); if (selectedIndex > 0) select(selectedIndex - 1); }
+            else if (key === 'ENTER') { submit(); }
+            else if ("0123456789+-*=/".includes(key)) { guessArr[selectedIndex] = key; update(); if (selectedIndex < 7) select(selectedIndex + 1); }
+        }
+
+        function update() {
+            for (let i = 0; i < 8; i++) {
+                const t = document.getElementById(`r${currentRow}t${i}`);
+                if(t) {
+                    t.innerText = guessArr[i].replace('*', 'x').replace('/', '÷');
+                    if (guessArr[i]) t.classList.add('pop'); else t.classList.remove('pop');
+                }
+            }
+        }
+
+        function submit() {
+            const g = guessArr.join('');
+            if (g.length < 8 || guessArr.includes("")) return;
+            try {
+                let p = g.split('=');
+                if (p.length !== 2) throw new Error();
+                if (eval(p[0].replace(/x/g, '*').replace(/÷/g, '/')) !== parseInt(p[1])) { showToast("Calculation Error!"); return; }
+            } catch(e) { showToast("Syntax Error!"); return; }
+            reveal(g);
+        }
+
+        function reveal(g) {
+            isAnimating = true;
+            let gArr = g.split(''), tArr = target.split(''), res = new Array(8).fill('absent');
+            for(let i=0; i<8; i++) if(gArr[i] === tArr[i]) { res[i] = 'correct'; tArr[i] = null; }
+            for(let i=0; i<8; i++) if(res[i] !== 'correct' && tArr.indexOf(gArr[i]) !== -1) { res[i] = 'present'; tArr[tArr.indexOf(gArr[i])] = null; }
+            for(let i=0; i<8; i++) {
+                setTimeout(() => {
+                    const tile = document.getElementById(`r${currentRow}t${i}`);
+                    if(tile) tile.setAttribute('data-status', res[i]);
+                    const keyStr = gArr[i];
+                    const key = document.getElementById(`key-${keyStr}`);
+                    if (key && key.getAttribute('data-status') !== 'correct') key.setAttribute('data-status', res[i]);
+                }, i * 150);
+            }
+            setTimeout(() => {
+                isAnimating = false;
+                if (g === target) {
+                    clearInterval(timerInterval);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    document.getElementById('praise').innerText = praises[currentRow];
+                    document.getElementById('final-time-text').innerText = timerEnabled ? "Time: " + document.getElementById('timer').innerText : "Timer: Disabled";
+                    document.getElementById('percent-text').innerText = "You beat " + percentages[currentRow] + " of players!";
+                    document.getElementById('results-overlay').style.display = 'flex';
+                } else if (currentRow === 5) {
+                    showToast("Solution: " + target); 
+                    setTimeout(() => init(), 3500);
+                } else { currentRow++; guessArr = new Array(8).fill(""); select(0); }
+            }, 1500);
+        }
+
+        window.addEventListener('keydown', e => {
+            if (document.querySelector('.overlay[style*="flex"]')) return;
+            if (e.key === 'Enter') press('ENTER');
+            else if (e.key === 'Backspace') press('BACK');
+            else if (e.key === 'ArrowLeft') select(selectedIndex - 1);
+            else if (e.key === 'ArrowRight') select(selectedIndex + 1);
+            else if (e.key.toLowerCase() === 'x') press('*');
+            else if ("0123456789+-*=/".includes(e.key)) press(e.key);
+        });
+
+        init();
+    </script>
+</body>
+</html>
