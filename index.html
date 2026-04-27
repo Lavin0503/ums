@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMS - Untitled Maths System</title>
     
     <link rel="icon" type="image/png" href="Screenshot 2026-04-26 103644.png">
@@ -38,7 +38,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
         header {
@@ -49,6 +49,7 @@
             max-width: 500px;
             padding: 10px 15px;
             border-bottom: 1px solid var(--tile-border);
+            box-sizing: border-box;
         }
 
         .ums-branding {
@@ -57,7 +58,6 @@
             gap: 10px;
         }
 
-        /* Logo styling beside the title */
         .header-logo {
             width: 32px;
             height: 32px;
@@ -100,7 +100,7 @@
         .tile[data-status="present"] { background: var(--present) !important; border-color: var(--present) !important; color: white; }
         .tile[data-status="absent"] { background: var(--absent) !important; border-color: var(--absent) !important; color: white; }
 
-        #keyboard { width: 100%; max-width: 500px; padding: 10px; margin-top: auto; }
+        #keyboard { width: 100%; max-width: 500px; padding: 10px; margin-top: auto; box-sizing: border-box; }
         .kb-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 6px; }
         
         .key {
@@ -114,6 +114,21 @@
         .key[data-status="present"] { background: var(--present); color: white; }
         .key[data-status="absent"] { background: var(--absent); color: white; opacity: 0.4; }
         .key.wide { flex: 2; background: #475569; color: white; }
+
+        /* MOBILE FIT ADJUSTMENTS */
+        @media (max-width: 480px) {
+            .tile {
+                width: 10vw;
+                height: 10vw;
+                max-width: 40px;
+                max-height: 40px;
+                font-size: 1.1rem;
+            }
+            #game-board { padding: 10px 5px; gap: 4px; }
+            .row { gap: 4px; }
+            .key { padding: 12px 0; font-size: 0.8rem; }
+            h1 { font-size: 1.2rem; }
+        }
 
         #toast {
             position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
@@ -254,8 +269,24 @@
             document.getElementById('timer').style.visibility = timerEnabled ? "visible" : "hidden";
         }
         function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
-        function checkAdmin() { if (document.getElementById('admin-pass').value === "0503") { document.getElementById('admin-login').style.display = 'none'; document.getElementById('admin-controls').style.display = 'block'; document.getElementById('show-ans').innerText = target; } }
-        function forceAnswer() { const val = document.getElementById('manual-ans').value; if (val.length === 8) { target = val; showToast("Manual Override Set"); } }
+        
+        function checkAdmin() { 
+            if (document.getElementById('admin-pass').value === "0503") { 
+                document.getElementById('admin-login').style.display = 'none'; 
+                document.getElementById('admin-controls').style.display = 'block'; 
+                document.getElementById('show-ans').innerText = target; 
+            } 
+        }
+        
+        function forceAnswer() { 
+            const val = document.getElementById('manual-ans').value; 
+            if (val.length === 8) { 
+                target = val; 
+                document.getElementById('show-ans').innerText = target; // Update display immediately
+                showToast("Manual Override Set"); 
+            } 
+        }
+        
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
 
         function generateEquation() {
@@ -274,6 +305,11 @@
 
         function init() {
             target = generateEquation();
+            
+            // ADMIN PANEL UPDATE LOGIC
+            const adminAnsDisplay = document.getElementById('show-ans');
+            if (adminAnsDisplay) adminAnsDisplay.innerText = target;
+
             currentRow = 0; selectedIndex = 0; guessArr = new Array(8).fill("");
             isAnimating = false;
             document.getElementById('results-overlay').style.display = 'none';
@@ -355,7 +391,8 @@
                 isAnimating = false;
                 if (g === target) {
                     clearInterval(timerInterval);
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    // CONFETTI ON TOP LAYER
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 3000 });
                     document.getElementById('praise').innerText = praises[currentRow];
                     document.getElementById('final-time-text').innerText = timerEnabled ? "Time: " + document.getElementById('timer').innerText : "Timer: Disabled";
                     document.getElementById('percent-text').innerText = "You beat " + percentages[currentRow] + " of players!";
