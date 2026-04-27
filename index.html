@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMS - Untitled Maths System</title>
     
-    <link rel="icon" type="image/png" href="Screenshot 2026-04-26 103644.png">
+    <link rel="icon" type="image/png" href="file:///C:/Users/lavin/Downloads/Screenshot%202026-04-26%20103644.png">
     
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="./UMS - Untitled Maths System_files/confetti.browser.min.js.download"></script>
     <style>
         :root {
             --bg: #0f172a;
@@ -115,14 +114,13 @@
         .key[data-status="absent"] { background: var(--absent); color: white; opacity: 0.4; }
         .key.wide { flex: 2; background: #475569; color: white; }
 
-        /* MOBILE FIT ADJUSTMENTS */
         @media (max-width: 480px) {
             .tile {
                 width: 10vw;
                 height: 10vw;
-                max-width: 40px;
-                max-height: 40px;
-                font-size: 1.1rem;
+                max-width: 38px;
+                max-height: 38px;
+                font-size: 1rem;
             }
             #game-board { padding: 10px 5px; gap: 4px; }
             .row { gap: 4px; }
@@ -150,10 +148,10 @@
 
     <header>
         <div class="ums-branding">
-            <img src="Screenshot 2026-04-26 103644.png" alt="Logo" class="header-logo">
+            <img src="file:///C:/Users/lavin/Downloads/Screenshot%202026-04-26%20103644.png" alt="Logo" class="header-logo">
             <h1>UMS</h1>
         </div>
-        <div id="timer">00:00</div>
+        <div id="timer" style="visibility: hidden;">00:00</div>
         <div class="nav-btns">
             <button id="toggle-timer" onclick="toggleTimerOption()" title="Toggle Timer" style="opacity: 0.4;">⏱️</button>
             <button onclick="toggleResetModal()" title="Reset Puzzle">🔄</button>
@@ -164,7 +162,7 @@
 
     <div id="toast"></div>
 
-    <div id="rules-overlay" class="overlay">
+    <div id="rules-overlay" class="overlay" style="display: none;">
         <div class="modal">
             <h2 style="margin-top: 0; color: var(--accent);">How to Play UMS</h2>
             <div style="text-align: left; font-size: 0.9rem; line-height: 1.4; margin-bottom: 20px;">
@@ -204,7 +202,7 @@
                 <button class="btn-main" onclick="checkAdmin()">Unlock</button>
             </div>
             <div id="admin-controls" style="display: none;">
-                <p style="font-size: 0.8rem;">Target: <b id="show-ans" style="color: var(--correct);"></b></p>
+                <p style="font-size: 0.8rem;">Target: <b id="show-ans" style="color: var(--correct);">36*6=216</b></p>
                 <input type="text" id="manual-ans" style="width:90%; padding:10px; margin:10px 0; background:var(--tile-empty); border:1px solid var(--tile-border); color:white; border-radius:5px;" placeholder="Manual Set" maxlength="8">
                 <button class="btn-main" onclick="forceAnswer()">Apply</button>
             </div>
@@ -212,31 +210,31 @@
         </div>
     </div>
 
-    <div id="game-board"></div>
+    <div id="game-board"><div class="row"><div class="tile active-input" id="r0t0"></div><div class="tile" id="r0t1"></div><div class="tile" id="r0t2"></div><div class="tile" id="r0t3"></div><div class="tile" id="r0t4"></div><div class="tile" id="r0t5"></div><div class="tile" id="r0t6"></div><div class="tile" id="r0t7"></div></div><div class="row"><div class="tile" id="r1t0"></div><div class="tile" id="r1t1"></div><div class="tile" id="r1t2"></div><div class="tile" id="r1t3"></div><div class="tile" id="r1t4"></div><div class="tile" id="r1t5"></div><div class="tile" id="r1t6"></div><div class="tile" id="r1t7"></div></div><div class="row"><div class="tile" id="r2t0"></div><div class="tile" id="r2t1"></div><div class="tile" id="r2t2"></div><div class="tile" id="r2t3"></div><div class="tile" id="r2t4"></div><div class="tile" id="r2t5"></div><div class="tile" id="r2t6"></div><div class="tile" id="r2t7"></div></div><div class="row"><div class="tile" id="r3t0"></div><div class="tile" id="r3t1"></div><div class="tile" id="r3t2"></div><div class="tile" id="r3t3"></div><div class="tile" id="r3t4"></div><div class="tile" id="r3t5"></div><div class="tile" id="r3t6"></div><div class="tile" id="r3t7"></div></div><div class="row"><div class="tile" id="r4t0"></div><div class="tile" id="r4t1"></div><div class="tile" id="r4t2"></div><div class="tile" id="r4t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r4t5"></div><div class="tile" id="r4t6"></div><div class="tile" id="r4t7"></div></div><div class="row"><div class="tile" id="r5t0"></div><div class="tile" id="r5t1"></div><div class="tile" id="r5t2"></div><div class="tile" id="r5t3"></div><div class="tile" id="r5t4"></div><div class="tile" id="r5t5"></div><div class="tile" id="r5t6"></div><div class="tile" id="r5t7"></div></div></div>
 
     <div id="keyboard">
         <div class="kb-row">
-            <button class="key" id="key-1" onclick="press('1')">1</button>
-            <button class="key" id="key-2" onclick="press('2')">2</button>
-            <button class="key" id="key-3" onclick="press('3')">3</button>
-            <button class="key" id="key-4" onclick="press('4')">4</button>
-            <button class="key" id="key-5" onclick="press('5')">5</button>
-            <button class="key" id="key-6" onclick="press('6')">6</button>
-            <button class="key" id="key-7" onclick="press('7')">7</button>
-            <button class="key" id="key-8" onclick="press('8')">8</button>
-            <button class="key" id="key-9" onclick="press('9')">9</button>
-            <button class="key" id="key-0" onclick="press('0')">0</button>
+            <button class="key" id="key-1" onclick="press(&#39;1&#39;)">1</button>
+            <button class="key" id="key-2" onclick="press(&#39;2&#39;)">2</button>
+            <button class="key" id="key-3" onclick="press(&#39;3&#39;)">3</button>
+            <button class="key" id="key-4" onclick="press(&#39;4&#39;)">4</button>
+            <button class="key" id="key-5" onclick="press(&#39;5&#39;)">5</button>
+            <button class="key" id="key-6" onclick="press(&#39;6&#39;)">6</button>
+            <button class="key" id="key-7" onclick="press(&#39;7&#39;)">7</button>
+            <button class="key" id="key-8" onclick="press(&#39;8&#39;)">8</button>
+            <button class="key" id="key-9" onclick="press(&#39;9&#39;)">9</button>
+            <button class="key" id="key-0" onclick="press(&#39;0&#39;)">0</button>
         </div>
         <div class="kb-row">
-            <button class="key" id="key-+" onclick="press('+')">+</button>
-            <button class="key" id="key--" onclick="press('-')">-</button>
-            <button class="key" id="key-*" onclick="press('*')">x</button>
-            <button class="key" id="key-/" onclick="press('/')">÷</button>
-            <button class="key" id="key-=" onclick="press('=')">=</button>
+            <button class="key" id="key-+" onclick="press(&#39;+&#39;)">+</button>
+            <button class="key" id="key--" onclick="press(&#39;-&#39;)">-</button>
+            <button class="key" id="key-*" onclick="press(&#39;*&#39;)">x</button>
+            <button class="key" id="key-/" onclick="press(&#39;/&#39;)">÷</button>
+            <button class="key" id="key-=" onclick="press(&#39;=&#39;)">=</button>
         </div>
         <div class="kb-row">
-            <button class="key wide" id="key-ENTER" onclick="press('ENTER')">ENTER</button>
-            <button class="key wide" id="key-BACK" onclick="press('BACK')">DEL</button>
+            <button class="key wide" id="key-ENTER" onclick="press(&#39;ENTER&#39;)">ENTER</button>
+            <button class="key wide" id="key-BACK" onclick="press(&#39;BACK&#39;)">DEL</button>
         </div>
     </div>
 
@@ -261,15 +259,19 @@
         function toggleRules() { const r = document.getElementById('rules-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
         function toggleResetModal() { const r = document.getElementById('reset-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
         function confirmReset() { toggleResetModal(); init(); showToast("Puzzle Reset!"); }
-
         function adminClick() { if (++adminClicks >= 5) { document.getElementById('admin-overlay').style.display = 'flex'; adminClicks = 0; } }
+        
         function toggleTimerOption() {
             timerEnabled = !timerEnabled;
             document.getElementById('toggle-timer').style.opacity = timerEnabled ? "1" : "0.4";
             document.getElementById('timer').style.visibility = timerEnabled ? "visible" : "hidden";
+            if (timerEnabled) {
+                startTime = Date.now();
+                document.getElementById('timer').innerText = "00:00";
+            }
         }
-        function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
         
+        function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
         function checkAdmin() { 
             if (document.getElementById('admin-pass').value === "0503") { 
                 document.getElementById('admin-login').style.display = 'none'; 
@@ -277,16 +279,14 @@
                 document.getElementById('show-ans').innerText = target; 
             } 
         }
-        
         function forceAnswer() { 
             const val = document.getElementById('manual-ans').value; 
             if (val.length === 8) { 
                 target = val; 
-                document.getElementById('show-ans').innerText = target; // Update display immediately
+                document.getElementById('show-ans').innerText = target;
                 showToast("Manual Override Set"); 
             } 
         }
-        
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
 
         function generateEquation() {
@@ -305,11 +305,7 @@
 
         function init() {
             target = generateEquation();
-            
-            // ADMIN PANEL UPDATE LOGIC
-            const adminAnsDisplay = document.getElementById('show-ans');
-            if (adminAnsDisplay) adminAnsDisplay.innerText = target;
-
+            if (document.getElementById('show-ans')) document.getElementById('show-ans').innerText = target;
             currentRow = 0; selectedIndex = 0; guessArr = new Array(8).fill("");
             isAnimating = false;
             document.getElementById('results-overlay').style.display = 'none';
@@ -330,6 +326,7 @@
             startTime = Date.now();
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
+                if (!timerEnabled) return;
                 const diff = Math.floor((Date.now() - startTime) / 1000);
                 document.getElementById('timer').innerText = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
             }, 1000);
@@ -347,9 +344,24 @@
             if (isAnimating) return;
             const btn = document.getElementById(`key-${key}`);
             if(btn) { btn.classList.add('pressed'); setTimeout(() => btn.classList.remove('pressed'), 200); }
-            if (key === 'BACK') { guessArr[selectedIndex] = ""; update(); if (selectedIndex > 0) select(selectedIndex - 1); }
+            
+            if (key === 'BACK') { 
+                if (guessArr[selectedIndex] !== "") {
+                    // 1. Current box has value -> Clear it, stay in box.
+                    guessArr[selectedIndex] = ""; 
+                } else if (selectedIndex > 0) {
+                    // 2. Current box is empty -> Move back and clear that one.
+                    select(selectedIndex - 1);
+                    guessArr[selectedIndex] = "";
+                }
+                update(); 
+            }
             else if (key === 'ENTER') { submit(); }
-            else if ("0123456789+-*=/".includes(key)) { guessArr[selectedIndex] = key; update(); if (selectedIndex < 7) select(selectedIndex + 1); }
+            else if ("0123456789+-*=/".includes(key)) { 
+                guessArr[selectedIndex] = key; 
+                update(); 
+                if (selectedIndex < 7) select(selectedIndex + 1); 
+            }
         }
 
         function update() {
@@ -391,7 +403,6 @@
                 isAnimating = false;
                 if (g === target) {
                     clearInterval(timerInterval);
-                    // CONFETTI ON TOP LAYER
                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 3000 });
                     document.getElementById('praise').innerText = praises[currentRow];
                     document.getElementById('final-time-text').innerText = timerEnabled ? "Time: " + document.getElementById('timer').innerText : "Timer: Disabled";
@@ -416,5 +427,5 @@
 
         init();
     </script>
-</body>
-</html>
+
+</body></html>
