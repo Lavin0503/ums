@@ -4,8 +4,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>UMS - Untitled Maths System</title>
     
-    <img src="file:///C:/Users/lavin/Downloads/Screenshot%202026-04-26%20103644.png" alt="Logo" class="header-logo">
-    
     <script src="./UMS - Untitled Maths System_files/confetti.browser.min.js.download"></script>
     <style>
         :root {
@@ -148,7 +146,7 @@
 
     <header>
         <div class="ums-branding">
-            <img src="file:///C:/Users/lavin/Downloads/Screenshot%202026-04-26%20103644.png" alt="Logo" class="header-logo">
+            <img src="Screenshot 2026-04-26 103644.png" alt="Logo" class="header-logo">
             <h1>UMS</h1>
         </div>
         <div id="timer" style="visibility: hidden;">00:00</div>
@@ -290,11 +288,11 @@
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); }
 
         function generateEquation() {
-            const ops = ['+', '-', '*'];
+            const ops = ['+', '-', '*', '/'];
             while (true) {
                 let a = Math.floor(Math.random()*90)+10;
                 let b = Math.floor(Math.random()*9)+1;
-                let op = ops[Math.floor(Math.random()*3)];
+                let op = ops[Math.floor(Math.random()*4)];
                 try {
                     let res = eval(`${a}${op}${b}`);
                     let s = `${a}${op}${b}=${res}`;
