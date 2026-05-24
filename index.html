@@ -191,7 +191,6 @@
             <button class="btn-main" onclick="init()">NEW PUZZLE</button>
         </div>
     </div>
-
     <div id="admin-overlay" class="overlay" style="display: none;">
         <div class="modal">
             <h3 style="color: var(--accent); margin: 0;">UMS Admin</h3>
@@ -208,7 +207,7 @@
         </div>
     </div>
 
-    <div id="game-board"><div class="row"><div class="tile active-input" id="r0t0"></div><div class="tile" id="r0t1"></div><div class="tile" id="r0t2"></div><div class="tile" id="r0t3"></div><div class="tile" id="r0t4"></div><div class="tile" id="r0t5"></div><div class="tile" id="r0t6"></div><div class="tile" id="r0t7"></div></div><div class="row"><div class="tile" id="r1t0"></div><div class="tile" id="r1t1"></div><div class="tile" id="r1t2"></div><div class="tile" id="r1t3"></div><div class="tile" id="r1t4"></div><div class="tile" id="r1t5"></div><div class="tile" id="r1t6"></div><div class="tile" id="r1t7"></div></div><div class="row"><div class="tile" id="r2t0"></div><div class="tile" id="r2t1"></div><div class="tile" id="r2t2"></div><div class="tile" id="r2t3"></div><div class="tile" id="r2t4"></div><div class="tile" id="r2t5"></div><div class="tile" id="r2t6"></div><div class="tile" id="r2t7"></div></div><div class="row"><div class="tile" id="r3t0"></div><div class="tile" id="r3t1"></div><div class="tile" id="r3t2"></div><div class="tile" id="r3t3"></div><div class="tile" id="r3t4"></div><div class="tile" id="r3t5"></div><div class="tile" id="r3t6"></div><div class="tile" id="r3t7"></div></div><div class="row"><div class="tile" id="r4t0"></div><div class="tile" id="r4t1"></div><div class="tile" id="r4t2"></div><div class="tile" id="r4t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r4t5"></div><div class="tile" id="r4t6"></div><div class="tile" id="r4t7"></div></div><div class="row"><div class="tile" id="r5t0"></div><div class="tile" id="r5t1"></div><div class="tile" id="r5t2"></div><div class="tile" id="r5t3"></div><div class="tile" id="r5t4"></div><div class="tile" id="r5t5"></div><div class="tile" id="r5t6"></div><div class="tile" id="r5t7"></div></div></div>
+    <div id="game-board"><div class="row"><div class="tile active-input" id="r0t0"></div><div class="tile" id="r0t1"></div><div class="tile" id="r0t2"></div><div class="tile" id="r0t3"></div><div class="tile" id="r0t4"></div><div class="tile" id="r0t5"></div><div class="tile" id="r0t6"></div><div class="tile" id="r0t7"></div></div><div class="row"><div class="tile" id="r1t0"></div><div class="tile" id="r1t1"></div><div class="tile" id="r1t2"></div><div class="tile" id="r1t3"></div><div class="tile" id="r1t4"></div><div class="tile" id="r1t5"></div><div class="tile" id="r1t6"></div><div class="tile" id="r1t7"></div></div><div class="row"><div class="tile" id="r2t0"></div><div class="tile" id="r2t1"></div><div class="tile" id="r2t2"></div><div class="tile" id="r2t3"></div><div class="tile" id="r2t4"></div><div class="tile" id="r2t5"></div><div class="tile" id="r2t6"></div><div class="tile" id="r2t7"></div></div><div class="row"><div class="tile" id="r3t0"></div><div class="tile" id="r3t1"></div><div class="tile" id="r3t2"></div><div class="tile" id="r3t3"></div><div class="tile" id="r3t4"></div><div class="tile" id="r3t5"></div><div class="tile" id="r3t6"></div><div class="tile" id="r3t7"></div></div><div class="row"><div class="tile" id="r4t0"></div><div class="tile" id="r4t1"></div><div class="tile" id="r4t2"></div><div class="tile" id="r4t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r4t5"></div><div class="tile" id="r4t6"></div><div class="tile" id="r4t7"></div></div><div class="row"><div class="tile" id="r5t0"></div><div class="tile" id="r5t1"></div><div class="tile" id="r5t2"></div><div class="tile" id="r5t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r5t5"></div><div class="tile" id="r5t6"></div><div class="tile" id="r5t7"></div></div></div>
 
     <div id="keyboard">
         <div class="kb-row">
@@ -290,14 +289,31 @@
         function generateEquation() {
             const ops = ['+', '-', '*', '/'];
             while (true) {
-                let a = Math.floor(Math.random()*90)+10;
-                let b = Math.floor(Math.random()*9)+1;
-                let op = ops[Math.floor(Math.random()*4)];
-                try {
-                    let res = eval(`${a}${op}${b}`);
-                    let s = `${a}${op}${b}=${res}`;
-                    if (s.length === 8 && res >= 0 && Number.isInteger(res)) return s;
-                } catch(e) {}
+                let op = ops[Math.floor(Math.random() * ops.length)];
+                let a, b, res;
+
+                if (op === '+') {
+                    a = Math.floor(Math.random() * 890) + 10; 
+                    b = Math.floor(Math.random() * 89) + 1;   
+                    res = a + b;
+                } else if (op === '-') {
+                    a = Math.floor(Math.random() * 890) + 100; 
+                    b = Math.floor(Math.random() * (a - 10)); 
+                    res = a - b;
+                } else if (op === '*') {
+                    a = Math.floor(Math.random() * 90) + 10;  
+                    b = Math.floor(Math.random() * 9) + 1;    
+                    res = a * b;
+                } else if (op === '/') {
+                    b = Math.floor(Math.random() * 12) + 2;   
+                    res = Math.floor(Math.random() * 90) + 10; 
+                    a = res * b;
+                }
+
+                let s = `${a}${op}${b}=${res}`;
+                if (s.length === 8 && res >= 0 && Number.isInteger(res)) {
+                    return s;
+                }
             }
         }
 
@@ -345,10 +361,8 @@
             
             if (key === 'BACK') { 
                 if (guessArr[selectedIndex] !== "") {
-                    // 1. Current box has value -> Clear it, stay in box.
                     guessArr[selectedIndex] = ""; 
                 } else if (selectedIndex > 0) {
-                    // 2. Current box is empty -> Move back and clear that one.
                     select(selectedIndex - 1);
                     guessArr[selectedIndex] = "";
                 }
