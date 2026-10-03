@@ -1,279 +1,349 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UMS - Untitled Maths System</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        :root {
-            --bg: #0f172a;
-            --tile-empty: #1e293b;
-            --tile-border: #334155;
-            --text: #f8fafc;
-            --key-bg: #334155;
-            --correct: #10b981;
-            --present: #f59e0b;
-            --absent: #475569;
-            --accent: #8b5cf6;
-        }
-
-        [data-theme="light"] {
-            --bg: #f8fafc;
-            --tile-empty: #ffffff;
-            --tile-border: #cbd5e1;
-            --text: #1e293b;
-            --key-bg: #e2e8f0;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--tile-border);
-            box-sizing: border-box;
-        }
-
-        .ums-branding {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .header-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
-        h1 { 
-            font-size: 1.5rem; 
-            margin: 0; 
-            color: var(--accent); 
-            letter-spacing: 2px; 
-            font-weight: 900; 
-        }
-
-        #timer { font-family: monospace; font-weight: bold; color: var(--present); font-size: 1.1rem; visibility: hidden; }
-
-        .nav-btns { display: flex; gap: 5px; }
-        .nav-btns button {
-            background: none; border: 1px solid var(--tile-border);
-            color: var(--text); border-radius: 5px; cursor: pointer;
-            padding: 5px 10px; font-weight: bold; font-size: 0.9rem;
-        }
-
-        #game-board { display: grid; grid-template-rows: repeat(6, 1fr); gap: 6px; padding: 15px; }
-        .row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
-
-        .tile {
-            width: 42px; height: 42px; border: 2px solid var(--tile-border);
-            border-radius: 4px; display: flex; justify-content: center;
-            align-items: center; font-size: 1.3rem; font-weight: bold;
-            background: var(--tile-empty); cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .tile.active-input { border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
-        .tile.pop { transform: scale(1.1); }
-        
-        .tile[data-status="correct"] { background: var(--correct) !important; border-color: var(--correct) !important; color: white; }
-        .tile[data-status="present"] { background: var(--present) !important; border-color: var(--present) !important; color: white; }
-        .tile[data-status="absent"] { background: var(--absent) !important; border-color: var(--absent) !important; color: white; }
-
-        #keyboard { width: 100%; max-width: 500px; padding: 10px; margin-top: auto; box-sizing: border-box; }
-        .kb-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 6px; }
-        
-        .key {
-            background: var(--key-bg); color: var(--text); border: none;
-            border-radius: 5px; padding: 14px 0; flex: 1;
-            font-weight: bold; cursor: pointer; transition: 0.1s;
-        }
-
-        .key.pressed { transform: scale(0.85); background: var(--accent) !important; color: white; }
-        .key[data-status="correct"] { background: var(--correct); color: white; }
-        .key[data-status="present"] { background: var(--present); color: white; }
-        .key[data-status="absent"] { background: var(--absent); color: white; opacity: 0.4; }
-        .key.wide { flex: 2; background: #475569; color: white; }
-
-        @media (max-width: 480px) {
-            .tile {
-                width: 10vw;
-                height: 10vw;
-                max-width: 38px;
-                max-height: 38px;
-                font-size: 1rem;
-            }
-            #game-board { padding: 10px 5px; gap: 4px; }
-            .row { gap: 4px; }
-            .key { padding: 12px 0; font-size: 0.8rem; }
-            h1 { font-size: 1.2rem; }
-        }
-
-        #toast {
-            position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
-            background: #ef4444; color: white; padding: 10px 20px;
-            border-radius: 5px; font-weight: bold; display: none; z-index: 3001;
-        }
-
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal { background: var(--bg); padding: 25px; border-radius: 15px; max-width: 320px; border: 2px solid var(--accent); text-align: center; width: 100%; }
-        
-        .btn-main { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-cancel { background: none; border: 1px solid #444; color: var(--text); padding: 10px; width: 100%; border-radius: 8px; cursor: pointer; margin-top: 10px; }
-        .praise-text { font-size: 2.2rem; font-weight: 900; color: var(--correct); text-transform: uppercase; }
-
-        footer { padding: 10px; font-size: 0.85rem; opacity: 0.7; width: 100%; text-align: center; }
-    </style>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UMS - Untitled Maths System</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+:root{--bg:#0f172a;--tile-empty:#1e293b;--tile-border:#334155;--text:#f8fafc;--key-bg:#334155;--correct:#10b981;--present:#f59e0b;--absent:#475569;--accent:#8b5cf6}
+[data-theme="light"]{--bg:#f8fafc;--tile-empty:#ffffff;--tile-border:#cbd5e1;--text:#1e293b;--key-bg:#e2e8f0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;margin:0;overflow-x:hidden}
+header{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:500px;padding:10px 15px;border-bottom:1px solid var(--tile-border);box-sizing:border-box}
+.ums-branding{display:flex;align-items:center;gap:10px}
+.logo-btn{display:flex;padding:0;border:2px solid var(--accent);border-radius:8px;background:none;cursor:pointer;overflow:hidden;line-height:0}
+.header-logo{width:36px;height:36px;border-radius:8px;object-fit:cover;border:2px solid var(--accent)}
+.nav-btns .nav-logo-btn{padding:2px;display:flex;align-items:center;border:2px solid var(--accent)}
+.nav-logo-btn img{width:26px;height:26px;border-radius:5px;object-fit:cover}
+h1{font-size:1.5rem;margin:0;color:var(--accent);letter-spacing:2px;font-weight:900}
+#timer{font-family:monospace;font-weight:bold;color:var(--present);font-size:1.1rem;visibility:hidden}
+.nav-btns{display:flex;gap:5px}
+.nav-btns button{background:none;border:1px solid var(--tile-border);color:var(--text);border-radius:5px;cursor:pointer;padding:5px 10px;font-weight:bold;font-size:.9rem}
+#game-board{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;padding:15px}
+.row{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.tile{width:42px;height:42px;border:2px solid var(--tile-border);border-radius:4px;display:flex;justify-content:center;align-items:center;font-size:1.3rem;font-weight:bold;background:var(--tile-empty);cursor:pointer;transition:all .2s ease}
+.tile.active-input{border-color:var(--accent);box-shadow:0 0 8px var(--accent)}
+.tile.pop{transform:scale(1.1)}
+.tile[data-status="correct"]{background:var(--correct)!important;border-color:var(--correct)!important;color:#fff}
+.tile[data-status="present"]{background:var(--present)!important;border-color:var(--present)!important;color:#fff}
+.tile[data-status="absent"]{background:var(--absent)!important;border-color:var(--absent)!important;color:#fff}
+#keyboard{width:100%;max-width:500px;padding:10px;margin-top:auto;box-sizing:border-box}
+.kb-row{display:flex;justify-content:center;gap:4px;margin-bottom:6px}
+.key{background:var(--key-bg);color:var(--text);border:none;border-radius:5px;padding:14px 0;flex:1;font-weight:bold;cursor:pointer;transition:.1s}
+.key.pressed{transform:scale(.85);background:var(--accent)!important;color:#fff}
+.key[data-status="correct"]{background:var(--correct);color:#fff}
+.key[data-status="present"]{background:var(--present);color:#fff}
+.key[data-status="absent"]{background:var(--absent);color:#fff;opacity:.4}
+.key.wide{flex:2;background:#475569;color:#fff}
+@media (max-width:480px){
+.tile{width:10vw;height:10vw;max-width:38px;max-height:38px;font-size:1rem}
+#game-board{padding:10px 5px;gap:4px}.row{gap:4px}
+.key{padding:12px 0;font-size:.8rem}h1{font-size:1.2rem}}
+#toast{position:fixed;top:12%;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:10px 20px;border-radius:5px;font-weight:bold;display:none;z-index:3001}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px}
+.modal{background:var(--bg);padding:25px;border-radius:15px;max-width:320px;border:2px solid var(--accent);text-align:center;width:100%}
+.btn-main{background:var(--accent);color:#fff;border:none;padding:12px;width:100%;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px}
+.btn-cancel{background:none;border:1px solid #444;color:var(--text);padding:10px;width:100%;border-radius:8px;cursor:pointer;margin-top:10px}
+.praise-text{font-size:2.2rem;font-weight:900;color:var(--correct);text-transform:uppercase}
+footer{padding:12px;font-size:.85rem;width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.footer-text{opacity:.8}
+.explore-btn{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:bold;padding:8px 16px;border-radius:999px;font-size:.9rem}
+.explore-btn img{width:22px;height:22px;border-radius:50%;object-fit:cover}
+.admin-input{width:90%;padding:10px;margin:10px 0;background:var(--tile-empty);border:1px solid var(--tile-border);color:var(--text);border-radius:5px}
+</style>
 </head>
 <body data-theme="dark">
 
-    <header>
-        <div class="ums-branding">
-            <img src="Screenshot 2026-04-26 103644.png" alt="Logo" class="header-logo">
-            <h1>UMS</h1>
-        </div>
-        <div id="timer" style="visibility: hidden;">00:00</div>
-        <div class="nav-btns">
-            <button id="toggle-timer" onclick="toggleTimerOption()" title="Toggle Timer" style="opacity: 0.4;">⏱️</button>
-            <button onclick="toggleResetModal()" title="Reset Puzzle">🔄</button>
-            <button onclick="toggleRules()" title="Help">?</button>
-            <button onclick="toggleTheme()">🌓</button>
-        </div>
-    </header>
+<header>
+  <div class="ums-branding">
+    <img src="2026_07_18_0i9_Kleki.png" alt="UMS Logo" class="header-logo" onerror="this.onerror=null;this.src='https://lavin0503.github.io/ms/2026_07_18_0i9_Kleki.png'">
+    <h1>UMS</h1>
+  </div>
+  <div id="timer">00:00</div>
+  <div class="nav-btns">
+    <button class="nav-logo-btn" onclick="window.open('https://lavin0503.github.io/','_blank')" title="Explore Lav1n's Creations"><img src="2026_07_18_0i9_Kleki.png" alt="Creations" onerror="this.onerror=null;this.src='https://lavin0503.github.io/ms/2026_07_18_0i9_Kleki.png'"></button>
+    <button id="toggle-timer" onclick="toggleTimerOption()" title="Toggle Timer" style="opacity:.4">⏱️</button>
+    <button onclick="toggleResetModal()" title="Reset Puzzle">🔄</button>
+    <button onclick="toggleRules()" title="Help">?</button>
+    <button onclick="toggleTheme()" title="Theme">🌓</button>
+  </div>
+</header>
 
-    <div id="toast"></div>
+<div id="toast"></div>
 
-    <div id="rules-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <h2 style="margin-top: 0; color: var(--accent);">How to Play UMS</h2>
-            <div style="text-align: left; font-size: 0.9rem; line-height: 1.4; margin-bottom: 20px;">
-                <p>Guess the 8-character equation in 6 tries.</p>
-                <p>🟢 Green: Correct spot.<br>🟡 Yellow: Wrong spot.<br>⚪ Gray: Not in equation.</p>
-                <p><b>Controls:</b> Arrow keys to navigate boxes. Type or click to enter. "X" is multiply.</p>
-            </div>
-            <button class="btn-main" onclick="toggleRules()">START GAME</button>
-        </div>
+<div id="rules-overlay" class="overlay">
+  <div class="modal">
+    <h2 style="margin-top:0;color:var(--accent)">How to Play UMS</h2>
+    <div style="text-align:left;font-size:.9rem;line-height:1.4;margin-bottom:20px">
+      <p>Guess the 8-character equation in 6 tries.</p>
+      <p>🟢 Green: Correct spot.<br>🟡 Yellow: Wrong spot.<br>⚪ Gray: Not in equation.</p>
+      <p><b>Controls:</b> Arrow keys to navigate boxes. Type or click to enter. "X" is multiply.</p>
     </div>
+    <button class="btn-main" onclick="toggleRules()">START GAME</button>
+  </div>
+</div>
 
-    <div id="reset-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <h3 style="color: var(--accent); margin: 0;">New Puzzle?</h3>
-            <p style="font-size: 0.9rem; opacity: 0.8;">This will clear your progress and create a new equation.</p>
-            <button class="btn-main" onclick="confirmReset()">YES, RESET</button>
-            <button class="btn-cancel" onclick="toggleResetModal()">CANCEL</button>
-        </div>
+<div id="reset-overlay" class="overlay" style="display:none">
+  <div class="modal">
+    <h3 style="color:var(--accent);margin:0">New Puzzle?</h3>
+    <p style="font-size:.9rem;opacity:.8">This will clear your progress and create a new equation.</p>
+    <button class="btn-main" onclick="confirmReset()">YES, RESET</button>
+    <button class="btn-cancel" onclick="toggleResetModal()">CANCEL</button>
+  </div>
+</div>
+
+<div id="results-overlay" class="overlay" style="display:none">
+  <div class="modal">
+    <div id="praise" class="praise-text">GENIUS</div>
+    <div class="stat-box">
+      <p id="final-time-text">Time: 00:00</p>
+      <p id="answer-text" style="font-family:monospace;font-size:1.1rem"></p>
+      <p id="percent-text" style="font-size:.9rem;margin-top:10px;color:var(--accent);font-weight:bold"></p>
     </div>
+    <button class="btn-main" onclick="init()">NEW PUZZLE</button>
+  </div>
+</div>
 
-    <div id="results-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <div id="praise" class="praise-text">GENIUS</div>
-            <div class="stat-box">
-                <p id="final-time-text">Time: 00:00</p>
-                <p id="percent-text" style="font-size: 0.9rem; margin-top: 10px; color: var(--accent); font-weight: bold;"></p>
-            </div>
-            <button class="btn-main" onclick="init()">NEW PUZZLE</button>
-        </div>
+<div id="admin-overlay" class="overlay" style="display:none">
+  <div class="modal">
+    <h3 style="color:var(--accent);margin:0">UMS Admin</h3>
+    <div id="admin-login">
+      <input type="password" id="admin-pass" class="admin-input" placeholder="Password">
+      <button class="btn-main" onclick="checkAdmin()">Unlock</button>
     </div>
-
-    <div id="admin-overlay" class="overlay" style="display: none;">
-        <div class="modal">
-            <h3 style="color: var(--accent); margin: 0;">UMS Admin</h3>
-            <div id="admin-login">
-                <input type="password" id="admin-pass" style="width:90%; padding:10px; margin:10px 0; background:var(--tile-empty); border:1px solid var(--tile-border); color:white; border-radius:5px;" placeholder="Password">
-                <button class="btn-main" onclick="checkAdmin()">Unlock</button>
-            </div>
-            <div id="admin-controls" style="display: none;">
-                <p style="font-size: 0.8rem;">Target: <b id="show-ans" style="color: var(--correct);">36*6=216</b></p>
-                <input type="text" id="manual-ans" style="width:90%; padding:10px; margin:10px 0; background:var(--tile-empty); border:1px solid var(--tile-border); color:white; border-radius:5px;" placeholder="Manual Set" maxlength="8">
-                <button class="btn-main" onclick="forceAnswer()">Apply</button>
-            </div>
-            <button class="btn-cancel" onclick="closeAdmin()">Close</button>
-        </div>
+    <div id="admin-controls" style="display:none">
+      <p style="font-size:.8rem">Target: <b id="show-ans" style="color:var(--correct)"></b></p>
+      <input type="text" id="manual-ans" class="admin-input" placeholder="Manual Set" maxlength="8">
+      <button class="btn-main" onclick="forceAnswer()">Apply</button>
     </div>
+    <button class="btn-cancel" onclick="closeAdmin()">Close</button>
+  </div>
+</div>
 
-    <div id="game-board"><div class="row"><div class="tile active-input" id="r0t0"></div><div class="tile" id="r0t1"></div><div class="tile" id="r0t2"></div><div class="tile" id="r0t3"></div><div class="tile" id="r0t4"></div><div class="tile" id="r0t5"></div><div class="tile" id="r0t6"></div><div class="tile" id="r0t7"></div></div><div class="row"><div class="tile" id="r1t0"></div><div class="tile" id="r1t1"></div><div class="tile" id="r1t2"></div><div class="tile" id="r1t3"></div><div class="tile" id="r1t4"></div><div class="tile" id="r1t5"></div><div class="tile" id="r1t6"></div><div class="tile" id="r1t7"></div></div><div class="row"><div class="tile" id="r2t0"></div><div class="tile" id="r2t1"></div><div class="tile" id="r2t2"></div><div class="tile" id="r2t3"></div><div class="tile" id="r2t4"></div><div class="tile" id="r2t5"></div><div class="tile" id="r2t6"></div><div class="tile" id="r2t7"></div></div><div class="row"><div class="tile" id="r3t0"></div><div class="tile" id="r3t1"></div><div class="tile" id="r3t2"></div><div class="tile" id="r3t3"></div><div class="tile" id="r3t4"></div><div class="tile" id="r3t5"></div><div class="tile" id="r3t6"></div><div class="tile" id="r3t7"></div></div><div class="row"><div class="tile" id="r4t0"></div><div class="tile" id="r4t1"></div><div class="tile" id="r4t2"></div><div class="tile" id="r4t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r4t5"></div><div class="tile" id="r4t6"></div><div class="tile" id="r4t7"></div></div><div class="row"><div class="tile" id="r5t0"></div><div class="tile" id="r5t1"></div><div class="tile" id="r5t2"></div><div class="tile" id="r5t3"></div><div class="tile" id="r4t4"></div><div class="tile" id="r5t5"></div><div class="tile" id="r5t6"></div><div class="tile" id="r5t7"></div></div></div>
+<div id="game-board"></div>
 
-    <div id="keyboard">
-        <div class="kb-row">
-            <button class="key" id="key-1" onclick="press(&#39;1&#39;)">1</button>
-            <button class="key" id="key-2" onclick="press(&#39;2&#39;)">2</button>
-            <button class="key" id="key-3" onclick="press(&#39;3&#39;)">3</button>
-            <button class="key" id="key-4" onclick="press(&#39;4&#39;)">4</button>
-            <button class="key" id="key-5" onclick="press(&#39;5&#39;)">5</button>
-            <button class="key" id="key-6" onclick="press(&#39;6&#39;)">6</button>
-            <button class="key" id="key-7" onclick="press(&#39;7&#39;)">7</button>
-            <button class="key" id="key-8" onclick="press(&#39;8&#39;)">8</button>
-            <button class="key" id="key-9" onclick="press(&#39;9&#39;)">9</button>
-            <button class="key" id="key-0" onclick="press(&#39;0&#39;)">0</button>
-        </div>
-        <div class="kb-row">
-            <button class="key" id="key-+" onclick="press(&#39;+&#39;)">+</button>
-            <button class="key" id="key--" onclick="press(&#39;-&#39;)">-</button>
-            <button class="key" id="key-*" onclick="press(&#39;*&#39;)">x</button>
-            <button class="key" id="key-/" onclick="press(&#39;/&#39;)">÷</button>
-            <button class="key" id="key-=" onclick="press(&#39;=&#39;)">=</button>
-        </div>
-        <div class="kb-row">
-            <button class="key wide" id="key-ENTER" onclick="press(&#39;ENTER&#39;)">ENTER</button>
-            <button class="key wide" id="key-BACK" onclick="press(&#39;BACK&#39;)">DEL</button>
-        </div>
-    </div>
+<div id="keyboard">
+  <div class="kb-row" id="kb-digits"></div>
+  <div class="kb-row" id="kb-ops"></div>
+  <div class="kb-row">
+    <button class="key wide" id="key-ENTER" onclick="press('ENTER')">ENTER</button>
+    <button class="key wide" id="key-BACK" onclick="press('BACK')">DEL</button>
+  </div>
+</div>
 
-    <footer>
-        Made by <b id="secret-trigger" onclick="adminClick()" style="cursor:default">Lav1n</b> | <a href="https://youtube.com/@Lav1nRules" target="_blank" style="color:var(--accent); text-decoration:none;">YouTube</a>
-    </footer>
+<footer>
+  <div class="footer-text">Made by <b id="secret-trigger" onclick="adminClick()" style="cursor:default">Lav1n</b> | <a href="https://youtube.com/@Lav1nRules" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">YouTube</a></div>
+  <a class="explore-btn" href="https://lavin0503.github.io/" target="_blank" rel="noopener">
+    <img src="2026_07_18_0i9_Kleki.png" alt="" onerror="this.onerror=null;this.src='https://lavin0503.github.io/ms/2026_07_18_0i9_Kleki.png'">
+    Explore Creations
+  </a>
+</footer>
 
-    <script>
-        let target = "";
-        let currentRow = 0;
-        let selectedIndex = 0;
-        let guessArr = new Array(8).fill("");
-        let isAnimating = false;
-        let adminClicks = 0;
-        let startTime, timerInterval;
-        let timerEnabled = false;
+<script>
+let target = "", currentRow = 0, selectedIndex = 0;
+let guessArr = new Array(8).fill("");
+let isAnimating = false, adminClicks = 0;
+let startTime = 0, timerInterval = null, timerEnabled = false, gameOver = false;
 
-        const praises = ["INSANE", "GENIUS", "AMAZING", "SMART", "GOOD", "PHEW"];
-        const percentages = ["99.9%", "98.2%", "85.4%", "72.1%", "64.8%", "51.2%"];
+const praises = ["INSANE","GENIUS","AMAZING","SMART","GOOD","PHEW"];
+const percentages = ["99.9%","98.2%","85.4%","72.1%","64.8%","51.2%"];
+const $ = id => document.getElementById(id);
+const tile = (r,c) => $('r'+r+'t'+c);
 
-        function toggleTheme() { document.body.dataset.theme = document.body.dataset.theme === "dark" ? "light" : "dark"; }
-        function toggleRules() { const r = document.getElementById('rules-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
-        function toggleResetModal() { const r = document.getElementById('reset-overlay'); r.style.display = r.style.display === 'none' ? 'flex' : 'none'; }
-        function confirmReset() { toggleResetModal(); init(); showToast("Puzzle Reset!"); }
-        function adminClick() { if (++adminClicks >= 5) { document.getElementById('admin-overlay').style.display = 'flex'; adminClicks = 0; } }
-        
-        function toggleTimerOption() {
-            timerEnabled = !timerEnabled;
-            document.getElementById('toggle-timer').style.opacity = timerEnabled ? "1" : "0.4";
-            document.getElementById('timer').style.visibility = timerEnabled ? "visible" : "hidden";
-            if (timerEnabled) {
-                startTime = Date.now();
-                document.getElementById('timer').innerText = "00:00";
-            }
-        }
-        
-        function closeAdmin() { document.getElementById('admin-overlay').style.display = 'none'; }
-        function checkAdmin() { 
-            if (document.getElementById('admin-pass').value === "0503") { 
-                document.getElementById('admin-login').style.display = 'none'; 
-                document.getElementById('admin-controls').style.display = 'block'; 
-                document.getElementById('show-ans').innerText = target; 
-            } 
-        }
+// ---------- build board & keyboard ----------
+(function build(){
+  const board = $('game-board');
+  for (let r=0;r<6;r++){
+    const row = document.createElement('div'); row.className='row';
+    for (let c=0;c<8;c++){
+      const t = document.createElement('div');
+      t.className='tile'; t.id='r'+r+'t'+c;
+      t.onclick = () => { if(!gameOver && !isAnimating && r===currentRow){ selectedIndex=c; updateActive(); } };
+      row.appendChild(t);
+    }
+    board.appendChild(row);
+  }
+  for (const d of "1234567890") addKey($('kb-digits'), d, d);
+  [['+','+'],['-','-'],['*','x'],['/','÷'],['=','=']].forEach(([v,l]) => addKey($('kb-ops'), v, l));
+  function addKey(parent, v, label){
+    const b = document.createElement('button');
+    b.className='key'; b.id='key-'+v; b.textContent=label;
+    b.onclick = () => press(v);
+    parent.appendChild(b);
+  }
+})();
+
+// ---------- UI helpers ----------
+function toggleTheme(){ document.body.dataset.theme = document.body.dataset.theme==="dark" ? "light" : "dark"; }
+function toggleRules(){ const r=$('rules-overlay'); r.style.display = r.style.display==='none' ? 'flex' : 'none'; }
+function toggleResetModal(){ const r=$('reset-overlay'); r.style.display = r.style.display==='none' ? 'flex' : 'none'; }
+function confirmReset(){ toggleResetModal(); init(); showToast("Puzzle Reset!"); }
+function adminClick(){ if(++adminClicks>=5){ $('admin-overlay').style.display='flex'; adminClicks=0; } }
+function closeAdmin(){ $('admin-overlay').style.display='none'; }
+function showToast(msg){
+  const t=$('toast'); t.textContent=msg; t.style.display='block';
+  clearTimeout(showToast.h); showToast.h=setTimeout(()=>t.style.display='none',1500);
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000);
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+function startTimer(){
+  clearInterval(timerInterval);
+  startTime=Date.now(); $('timer').innerText="00:00";
+  timerInterval=setInterval(()=>{ $('timer').innerText=fmtTime(Date.now()-startTime); },250);
+}
+function toggleTimerOption(){
+  timerEnabled=!timerEnabled;
+  $('toggle-timer').style.opacity = timerEnabled ? "1" : "0.4";
+  $('timer').style.visibility = timerEnabled ? "visible" : "hidden";
+  if(timerEnabled && !gameOver) startTimer(); else clearInterval(timerInterval);
+}
+
+// ---------- admin ----------
+function checkAdmin(){
+  if($('admin-pass').value==="0503"){
+    $('admin-login').style.display='none';
+    $('admin-controls').style.display='block';
+    $('show-ans').innerText=target;
+  } else showToast("Wrong password");
+}
+function forceAnswer(){
+  const v=$('manual-ans').value.replace(/x/gi,'*').replace(/\s/g,'');
+  if(!isValidEquation(v)){ showToast("Invalid equation"); return; }
+  closeAdmin(); init(v); $('show-ans').innerText=target; showToast("Answer set");
+}
+
+// ---------- equation logic ----------
+function ev(s){
+  if(!s || !/^[0-9+\-*/]+$/.test(s)) return NaN;
+  if(/[+\-*/]{2}/.test(s) || /^[+\-*/]|[+\-*/]$/.test(s)) return NaN;
+  if(/(^|[+\-*/])0\d/.test(s)) return NaN;
+  try { return Function('"use strict";return ('+s+')')(); } catch(e){ return NaN; }
+}
+function isValidEquation(s){
+  if(s.length!==8) return false;
+  const p=s.split('=');
+  if(p.length!==2) return false;
+  const a=ev(p[0]), b=ev(p[1]);
+  return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a-b)<1e-9;
+}
+function generate(){
+  const ops=['+','-','*','/'];
+  const num=()=>{ const d=1+Math.floor(Math.random()*3); const lo=d===1?1:Math.pow(10,d-1); return lo+Math.floor(Math.random()*(Math.pow(10,d)-lo)); };
+  for(let i=0;i<200000;i++){
+    const count=2+Math.floor(Math.random()*2);
+    let expr=String(num());
+    for(let k=1;k<count;k++) expr+=ops[Math.floor(Math.random()*4)]+num();
+    if(expr.length>6) continue;
+    const r=ev(expr);
+    if(!Number.isInteger(r) || r<0) continue;
+    const full=expr+'='+r;
+    if(full.length===8) return full;
+  }
+  return "36*6=216";
+}
+
+// ---------- game flow ----------
+function init(custom){
+  clearInterval(timerInterval);
+  target = (typeof custom==='string' && custom) ? custom : generate();
+  currentRow=0; selectedIndex=0; guessArr=new Array(8).fill("");
+  isAnimating=false; gameOver=false;
+  for(let r=0;r<6;r++) for(let c=0;c<8;c++){
+    const t=tile(r,c); t.textContent=''; t.removeAttribute('data-status'); t.className='tile';
+  }
+  document.querySelectorAll('.key').forEach(k=>k.removeAttribute('data-status'));
+  $('results-overlay').style.display='none';
+  $('show-ans').innerText=target;
+  if(timerEnabled) startTimer();
+  updateActive();
+}
+function updateActive(){
+  for(let c=0;c<8;c++) tile(currentRow<6?currentRow:5,c).classList.remove('active-input');
+  if(!gameOver && currentRow<6) tile(currentRow,selectedIndex).classList.add('active-input');
+}
+function render(){ for(let c=0;c<8;c++) tile(currentRow,c).textContent = guessArr[c]==='*' ? 'x' : guessArr[c]; }
+
+function press(k){
+  if(gameOver || isAnimating) return;
+  const btn=$('key-'+k);
+  if(btn){ btn.classList.add('pressed'); setTimeout(()=>btn.classList.remove('pressed'),100); }
+  if(k==='ENTER') return submit();
+  if(k==='BACK'){
+    if(guessArr[selectedIndex]!==""){ guessArr[selectedIndex]=""; }
+    else if(selectedIndex>0){ selectedIndex--; guessArr[selectedIndex]=""; }
+  } else if(/^[0-9+\-*/=]$/.test(k)){
+    guessArr[selectedIndex]=k;
+    const t=tile(currentRow,selectedIndex); t.classList.add('pop'); setTimeout(()=>t.classList.remove('pop'),100);
+    if(selectedIndex<7) selectedIndex++;
+  }
+  render(); updateActive();
+}
+
+function submit(){
+  if(guessArr.some(x=>x==="")) return showToast("Not enough characters");
+  const guess=guessArr.join('');
+  if(!isValidEquation(guess)) return showToast("Not a valid equation");
+  isAnimating=true;
+  const res=new Array(8).fill('absent'), counts={};
+  for(let i=0;i<8;i++){
+    if(guess[i]===target[i]) res[i]='correct';
+    else counts[target[i]]=(counts[target[i]]||0)+1;
+  }
+  for(let i=0;i<8;i++){
+    if(res[i]==='correct') continue;
+    if(counts[guess[i]]>0){ res[i]='present'; counts[guess[i]]--; }
+  }
+  const rank={absent:1,present:2,correct:3};
+  const row=currentRow;
+  for(let i=0;i<8;i++){
+    setTimeout(()=>{
+      const t=tile(row,i);
+      t.setAttribute('data-status',res[i]); t.classList.remove('active-input');
+      const key=$('key-'+guess[i]);
+      if(key){
+        const cur=key.getAttribute('data-status');
+        if(!cur || rank[res[i]]>rank[cur]) key.setAttribute('data-status',res[i]);
+      }
+    }, i*180);
+  }
+  setTimeout(()=>{
+    isAnimating=false;
+    if(guess===target) return endGame(true,row);
+    currentRow++;
+    if(currentRow>=6) return endGame(false,5);
+    guessArr=new Array(8).fill(""); selectedIndex=0; updateActive();
+  }, 8*180+100);
+}
+
+function endGame(won,row){
+  gameOver=true; clearInterval(timerInterval);
+  $('praise').textContent = won ? praises[row] : "GAME OVER";
+  $('praise').style.color = won ? 'var(--correct)' : '#ef4444';
+  $('final-time-text').textContent = timerEnabled ? "Time: "+fmtTime(Date.now()-startTime) : "";
+  $('answer-text').textContent = won ? "" : "Answer: "+target.replace('*','x');
+  $('percent-text').textContent = won ? "You did better than "+percentages[row]+" of players" : "";
+  if(won && window.confetti) confetti({particleCount:150,spread:80,origin:{y:.6}});
+  setTimeout(()=>{ $('results-overlay').style.display='flex'; }, won?900:400);
+}
+
+// ---------- physical keyboard ----------
+document.addEventListener('keydown',e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input') return;
+  if(['rules-overlay','reset-overlay','admin-overlay','results-overlay'].some(id=>$(id).style.display==='flex')) return;
+  if(gameOver || isAnimating) return;
+  if(e.key==='ArrowLeft'){ selectedIndex=Math.max(0,selectedIndex-1); updateActive(); e.preventDefault(); }
+  else if(e.key==='ArrowRight'){ selectedIndex=Math.min(7,selectedIndex+1); updateActive(); e.preventDefault(); }
+  else if(e.key==='Enter'){ press('ENTER'); e.preventDefault(); }
+  else if(e.key==='Backspace'){ press('BACK'); e.preventDefault(); }
+  else if(e.key==='x'||e.key==='X'){ press('*'); }
+  else if(/^[0-9+\-*/=]$/.test(e.key)){ press(e.key); e.preventDefault(); }
+});
+
+init();
+</script>
+</body>
+</html>
